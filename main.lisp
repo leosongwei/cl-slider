@@ -145,6 +145,13 @@
                    `(with-attr (underline)
                       ,@(mapcar #'gen-render-code (cdr render-exp)))))
       (br '(wprintw *stdscr* (format nil "~%")))
+      (brer (let (stack r)
+              (mapcar (lambda (x)
+                        (push (gen-render-code x) stack)
+                        (push (gen-render-code '(br)) stack))
+                      (cdr render-exp))
+              (dolist (i stack) (push i r))
+              (append '(progn) r)))
       (color (macroexpand
                `(with-color ,(let ((c (cadr render-exp)))
                                (if (get-color c)
