@@ -141,7 +141,7 @@
                   ,@(mapcar #'gen-render-code (cddr render-exp)))))
       (lisp (cadr render-exp))
       (t (format t "gen-render-code: warning!! illegal tag: ~A~%"
-                 (car render-exp))))
+                 render-exp)))
     (if (stringp render-exp)
       (let ((token (gensym)))
         (macroexpand `(with-cs ((,token ,render-exp))
@@ -245,11 +245,12 @@
         (#\R
          (reload-slide)))
       (progn
-        (if (or (>= *index* (slideshow-length))
-                (< *index* 0))
-          (setf *index* 0))
+        (cond ((>= *index* (slideshow-length))
+               (setf *index* 0))
+              ((< *index* 0)
+               (setf *index* (1- (slideshow-length)))))
         (clear)
-        (draw-slide (aref (eval '*renderers*) *index*))
+        (draw-slide (aref *renderers* *index*))
         (draw-bottom-panel)
         (refresh)))))
 
@@ -258,4 +259,6 @@
   (init-mainwindow)
   (main-loop))
 
-(sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'main)
+(main)
+
+;(sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'slider:main)
