@@ -15,15 +15,6 @@
      ,@body
      ,@(mapcar (lambda (s) `(free-cstring ,(car s))) s)))
 
-(defun init-mainwindow ()
-  (initscr)
-  (raw)
-  (noecho)
-  (curs-set 0)
-  (init-color-ncurses)
-  (clear)
-  (refresh))
-
 (defstruct as
   reverse bold underline)
 (defparameter as-current (make-as :reverse nil
@@ -92,10 +83,13 @@
   (init-pair COLOR_WHITE   COLOR_WHITE   COLOR_BLACK)
   (init-pair COLOR_MAGENTA COLOR_MAGENTA COLOR_BLACK)
   (init-pair COLOR_BLUE    COLOR_BLUE    COLOR_BLACK)
-  (init-pair COLOR_YELLOW  COLOR_YELLOW  COLOR_BLACK))
+  (init-pair COLOR_YELLOW  COLOR_YELLOW  COLOR_BLACK)
+  (init-pair 80 color_white color_black)
+  (bkgd (color-pair 80)))
 
 (defun set-background (color)
-  (let ((bg (eval (get-color color))))
+  (let ((bg (eval (let ((c (get-color color)))
+                    (if c c 'COLOR_BLACK)))))
     (init-pair COLOR_BLACK   COLOR_BLACK   bg)
     (init-pair COLOR_GREEN   COLOR_GREEN   bg)
     (init-pair COLOR_RED     COLOR_RED     bg)
@@ -104,7 +98,7 @@
     (init-pair COLOR_MAGENTA COLOR_MAGENTA bg)
     (init-pair COLOR_BLUE    COLOR_BLUE    bg)
     (init-pair COLOR_YELLOW  COLOR_YELLOW  bg)
-    (init-pair 80 color_black bg)
+    (init-pair 80 color_white bg)
     (bkgd (color-pair 80))))
 
 (defparameter color-stack '())
@@ -118,18 +112,6 @@
           (attroff (color-pair color-current))
           (setf color-current (pop color-stack))
           (attron (color-pair color-current))))
-
-(defun draw-bottom-panel ()
-  (let ((help "help"))
-    (with-cs ((c_help help)
-              (c_space " "))
-      (with-color black
-        (with-attr (reverse bold)
-          (dotimes (x *cols*)
-            (mvprintw (1- *lines*) x c_space))
-          (mvprintw (1- *lines*)
-                    (- *cols* (length help))
-                    c_help))))))
 
 (defun gen-render-code (render-exp)
   (if (consp render-exp)
@@ -168,3 +150,112 @@
             (token (gensym)))
         (macroexpand `(with-cs ((,token ,str))
                         (wprintw *stdscr* ,token)))))))
+
+(defun init-mainwindow ()
+  (initscr)
+  (raw)
+  (noecho)
+  (curs-set 0)
+  (init-color-ncurses)
+  (clear)
+  (refresh))
+
+(defun draw-slide (slide)
+  (standend)
+  (move 0 0)
+  (setf color-current 0)
+  (setf color-stack nil)
+  (setf as-current (make-as))
+  (setf as-stack nil)
+  (init-color-ncurses)
+  (funcall slide))
+
+(defun make-slide (sexp)
+  (let ((body nil)
+        (bg nil))
+    (if (equal :background (nth 1 sexp))
+      (progn (setf bg `(set-background (quote ,(nth 2 sexp))))
+             (setf body (nth 3 sexp)))
+      (progn (setf bg `(set-background 'black))
+             (setf body (nth 1 sexp))))
+    (eval
+      `(lambda ()
+         ,bg
+         ,(gen-render-code body)))))
+
+(defun read-file (path)
+  (let (r s)
+    (with-open-file (in path :direction :input)
+      (tagbody :start
+               (let ((i (read in nil)))
+                 (if i
+                   (progn (push i s)
+                          (go :start))
+                   (go :end)))
+               :end))
+    (dolist (i s)
+      (push i r))
+    r))
+
+(defparameter *index* 0)
+(defparameter *renderers* nil)
+
+(defun slideshow-length ()
+  (array-dimension *renderers* 0))
+
+(defun reload-slide ()
+  (let* ((path (nth 1 sb-ext:*posix-argv*))
+         (s (read-file path))
+         (length (length s))
+         (renderers (make-array length)))
+    (let ((i 0))
+      (dolist (e s)
+        (setf (aref renderers i)
+              (make-slide e))
+        (incf i)))
+    (setf *renderers* renderers)))
+
+(defun draw-bottom-panel ()
+  (let ((banner (format nil "~A/~A"
+                        (1+ *index*)
+                        (slideshow-length))))
+    (with-cs ((c_banner banner)
+              (c_space " "))
+      (with-color black
+        (with-attr (reverse bold)
+          (dotimes (x *cols*)
+            (mvprintw (1- *lines*) x c_space))
+          (mvprintw (1- *lines*)
+                    0
+                    c_banner))))))
+
+(defun main-loop ()
+  (loop
+    (let ((keystroke (code-char (getch))))
+      (case keystroke
+        (#\j
+         (incf *index*))
+        (#\k
+         (decf *index*))
+        (#\q
+         (progn
+           (clear)
+           (endwin)
+           (sb-ext:exit)))
+        (#\R
+         (reload-slide)))
+      (progn
+        (if (or (>= *index* (slideshow-length))
+                (< *index* 0))
+          (setf *index* 0))
+        (clear)
+        (draw-slide (aref (eval '*renderers*) *index*))
+        (draw-bottom-panel)
+        (refresh)))))
+
+(defun main ()
+  (reload-slide)
+  (init-mainwindow)
+  (main-loop))
+
+(sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'main)
