@@ -150,7 +150,9 @@
                                (if (get-color c)
                                  c 'black))
                   ,@(mapcar #'gen-render-code (cddr render-exp)))))
-      (lisp (cadr render-exp)))
+      (lisp (cadr render-exp))
+      (t (format t "gen-render-code: warning!! illegal tag: ~A~%"
+                 (car render-exp))))
     (if (stringp render-exp)
       (let ((token (gensym)))
         (macroexpand `(with-cs ((,token ,render-exp))
