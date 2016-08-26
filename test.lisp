@@ -18,7 +18,7 @@
           (color blue "* q: 退出Slider"))))
 
 (slide :background red
-  (body (reverse (bold "Slider是一个花了8小时写成的程序！！")) (br)
+  (body (reverse (bold "Slider是一个花了不足8小时写成的程序！！")) (br)
         (brer
           "* 不稳定，使用后果自负"
           "* 睡眠不足"
