@@ -15,3 +15,5 @@ Dependency:
 * Quicklisp
 * cl-ncurses(libncursesw.so.5)
 * uffi
+
+<img src="./screenshot.jpg" />
