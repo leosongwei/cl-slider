@@ -1,10 +1,12 @@
 (slide
   (body
     (reverse (bold "Slider: 用S表达式制作朴实的幻灯片")) (br)
+    (br)
     (brer
-      "* slider是一个播放幻灯片用的程序"
-      "* slider的DSL基于S表达式"
-      "* slider通过Lisp的宏功能生成代码")))
+      "* Slider是一个播放幻灯片用的程序，现仅支持SBCL"
+      "* 依赖于QuickLisp、cl-ncurses、uffi"
+      "* Slider的DSL基于S表达式，直接用了Common Lisp的reader"
+      "* Slider通过Lisp的宏将DSL转化为渲染代码编译执行")))
 
 (slide
   :background yellow
