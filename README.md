@@ -1,7 +1,7 @@
 README.md
 =========
 
-load a file:`sbcl --load main.lisp slideshowfile`
+Load a file(test.lisp): `sbcl --load main.lisp test.lisp`
 
 Key:
 
@@ -9,3 +9,9 @@ Key:
 * k: previous
 * R: reload
 * q: quit
+
+Dependency:
+* sbcl
+* Quicklisp
+* cl-ncurses(libncursesw.so.5)
+* uffi
