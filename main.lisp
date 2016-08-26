@@ -1,7 +1,13 @@
 (ql:quickload 'cl-ncurses)
 
+(in-package :cl-user)
+
+(mapcar #'export '(black red green yellow blue magenta cyan white
+                         body hi b u br brer c lisp slider))
+
 (defpackage slider
-  (:use #:cl-ncurses #:cl #:cl-user #:uffi))
+  (:use #:cl-ncurses #:cl #:cl-user #:uffi)
+  (:export #:main))
 
 (in-package slider)
 
@@ -117,28 +123,27 @@
   (if (consp render-exp)
     (case (car render-exp)
       (body `(progn ,@(mapcar #'gen-render-code (cdr render-exp))))
-      (reverse (macroexpand
-                 `(with-attr (reverse)
-                    ,@(mapcar #'gen-render-code (cdr render-exp)))))
-      (bold (macroexpand
-              `(with-attr (bold)
-                 ,@(mapcar #'gen-render-code (cdr render-exp)))))
-      (underline (macroexpand
-                   `(with-attr (underline)
-                      ,@(mapcar #'gen-render-code (cdr render-exp)))))
+      (hi (macroexpand
+             `(with-attr (reverse)
+                         ,@(mapcar #'gen-render-code (cdr render-exp)))))
+      (b (macroexpand
+            `(with-attr (bold)
+                        ,@(mapcar #'gen-render-code (cdr render-exp)))))
+      (u (macroexpand
+            `(with-attr (underline)
+                        ,@(mapcar #'gen-render-code (cdr render-exp)))))
       (br '(wprintw *stdscr* (format nil "~%")))
-      (brer (let (stack r)
-              (mapcar (lambda (x)
-                        (push (gen-render-code x) stack)
-                        (push (gen-render-code '(br)) stack))
-                      (cdr render-exp))
-              (dolist (i stack) (push i r))
-              (append '(progn) r)))
-      (color (macroexpand
-               `(with-color ,(let ((c (cadr render-exp)))
-                               (if (get-color c)
-                                 c 'black))
-                  ,@(mapcar #'gen-render-code (cddr render-exp)))))
+      (brer (let (stack)
+               (mapcar (lambda (x)
+                         (push (gen-render-code x) stack)
+                         (push (gen-render-code '(br)) stack))
+                       (cdr render-exp))
+               (append '(progn) (reverse stack))))
+      (c (macroexpand
+            `(with-color ,(let ((c (cadr render-exp)))
+                            (if (get-color c)
+                              c 'black))
+                         ,@(mapcar #'gen-render-code (cddr render-exp)))))
       (lisp (cadr render-exp))
       (t (format t "gen-render-code: warning!! illegal tag: ~A~%"
                  render-exp)))
@@ -242,7 +247,7 @@
            (clear)
            (endwin)
            (sb-ext:exit)))
-        (#\R
+        (#\r
          (reload-slide)))
       (progn
         (cond ((>= *index* (slideshow-length))
@@ -259,6 +264,6 @@
   (init-mainwindow)
   (main-loop))
 
-(main)
-
-;(sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'slider:main)
+;(main)
+(in-package :cl-user)
+(sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'slider:main)
