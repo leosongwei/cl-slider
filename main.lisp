@@ -267,6 +267,8 @@
   (init-mainwindow)
   (main-loop))
 
-(main)
-;(in-package :cl-user)
-;(sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'slider:main)
+(in-package :cl-user)
+(if (string= (nth 1 sb-ext:*posix-argv*)
+             "build")
+  (sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'slider:main)
+  (slider:main))
