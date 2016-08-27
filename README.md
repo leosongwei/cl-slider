@@ -1,7 +1,9 @@
 README.md
 =========
 
-Load a file(test.lisp): `sbcl --load main.lisp test.lisp`
+Build: sbcl --load main.lisp build
+
+Play slideshow(test.lisp): ./slider test.lisp
 
 Key:
 
