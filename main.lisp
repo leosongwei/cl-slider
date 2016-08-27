@@ -1,9 +1,12 @@
 (ql:quickload 'cl-ncurses)
+(ql:quickload 'uffi)
 
 (in-package :cl-user)
 
 (mapcar #'export '(black red green yellow blue magenta cyan white
                          body hi b u br brer c lisp slider))
+
+(uffi:load-foreign-library #p"/lib/x86_64-linux-gnu/libncursesw.so.5" :module "cl-ncurses")
 
 (defpackage slider
   (:use #:cl-ncurses #:cl #:cl-user #:uffi)
@@ -264,6 +267,6 @@
   (init-mainwindow)
   (main-loop))
 
-;(main)
-(in-package :cl-user)
-(sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'slider:main)
+(main)
+;(in-package :cl-user)
+;(sb-ext:save-lisp-and-die "slider" :executable t :compression 3 :toplevel #'slider:main)

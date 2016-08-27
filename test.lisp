@@ -1,6 +1,6 @@
 (slide
   (body
-    (hi (b "Slider: 用S表达式制作朴实的幻灯片!!")) (br)
+    (hi (b "Slider: 用S表达式制作朴实的幻灯片")) (br)
     (br)
     (brer
       "* Slider是一个播放幻灯片用的程序，现仅支持SBCL"
