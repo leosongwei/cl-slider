@@ -14,7 +14,7 @@
    (brer
      (c green "* j: 下一页")
      (c green "* k: 上一页")
-     (c red "* R: 重新载入（我还没有调试）")
+     (u (c red "* R: 重新载入（似乎可以用了）"))
      (c blue "* q: 退出Slider"))))
 
 (slide :background red
